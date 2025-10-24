@@ -26,12 +26,11 @@
         }
         /* Simple toggle switch */
         .toggle-checkbox:checked {
-            @apply: bg-blue-600;
             right: 0;
             border-color: #2563eb; /* blue-600 */
         }
         .toggle-checkbox:checked + .toggle-label {
-            @apply: bg-blue-600;
+             background-color: #2563eb; /* Apply blue-600 directly */
         }
     </style>
 </head>
@@ -66,9 +65,14 @@
             </div>
         </div>
         
-        <!-- Question Counter -->
-        <div id="question-counter" class="text-lg font-medium text-slate-300 text-center mb-4">
-            Question 1 of 120
+        <!-- Question Counter and Score -->
+        <div class="flex justify-between items-center text-lg font-medium text-slate-300 text-center mb-4 px-2">
+            <div id="question-counter">
+                Question 1 of 120
+            </div>
+            <div id="score-counter" class="hidden text-green-400">
+                Score: 0 / 0
+            </div>
         </div>
 
 
@@ -864,11 +868,14 @@
         let currentQuestions = []; // The active list of questions being quizzed
         let currentIndex = 0;
         let currentMode = 'flashcard'; // 'flashcard' or 'practice'
+        let score = 0;
+        let totalAttempted = 0;
 
         // --- DOM ELEMENTS ---
         const filterSelect = document.getElementById('week-filter');
         const modeToggle = document.getElementById('mode-toggle');
         const questionCounter = document.getElementById('question-counter');
+        const scoreCounter = document.getElementById('score-counter'); // Added
         const weekTitle = document.getElementById('week-title');
         const questionText = document.getElementById('question-text');
         const optionsContainer = document.getElementById('options-container');
@@ -913,6 +920,19 @@
         }
 
         /**
+         * Updates the score display, showing it only in practice mode.
+         */
+        function updateScoreDisplay() {
+            if (currentMode === 'practice') {
+                scoreCounter.textContent = `Score: ${score} / ${totalAttempted}`;
+                scoreCounter.classList.remove('hidden');
+            } else {
+                scoreCounter.textContent = '';
+                scoreCounter.classList.add('hidden');
+            }
+        }
+
+        /**
          * Handles the click of an option button in Practice Mode.
          */
         function handleOptionClick(clickedButton, selectedOption, correctAnswerStr) {
@@ -925,7 +945,10 @@
             const correctAnswers = correctAnswerStr.split(',').map(s => s.trim().toLowerCase());
             const isCorrect = correctAnswers.includes(selectedOption.toLowerCase());
 
+            // --- SCORE LOGIC ---
+            totalAttempted++;
             if (isCorrect) {
+                score++;
                 clickedButton.classList.remove('bg-slate-700', 'hover:bg-slate-600');
                 clickedButton.classList.add('bg-green-700', 'ring-2', 'ring-green-400');
             } else {
@@ -940,6 +963,8 @@
                     }
                 });
             }
+            updateScoreDisplay(); // Update score text
+            // --- END SCORE LOGIC ---
 
             // Show solution and next button
             correctAnswer.textContent = `Correct Answer: ${correctAnswerStr}`;
@@ -969,6 +994,7 @@
             detailedSolution.textContent = q.solution.trim();
             correctAnswer.textContent = `Correct Answer: ${q.answer}`;
             questionCounter.textContent = `Question ${currentIndex + 1} of ${currentQuestions.length}`;
+            updateScoreDisplay(); // Update score visibility and text
 
             // Parse question into title and options
             const parts = q.question.trim().split('\n');
@@ -1018,15 +1044,19 @@
             }
 
             currentIndex = 0;
+            score = 0; // Reset score
+            totalAttempted = 0; // Reset attempts
+
             if (currentQuestions.length > 0) {
                 // Update total count on counter
                 questionCounter.textContent = `Question 1 of ${currentQuestions.length}`;
-                loadQuestion();
+                loadQuestion(); // This will call updateScoreDisplay
             } else {
                 // Handle case where a filter results in no questions
                 weekTitle.textContent = "No Questions";
                 questionText.textContent = "No questions found for this filter.";
                 questionCounter.textContent = "Question 0 of 0";
+                updateScoreDisplay(); // Clear score display
             }
         }
 
@@ -1052,7 +1082,10 @@
          */
         function handleModeToggle() {
             currentMode = modeToggle.checked ? 'practice' : 'flashcard';
-            loadQuestion();
+            // Reset score when changing modes
+            score = 0;
+            totalAttempted = 0;
+            loadQuestion(); // This will call updateScoreDisplay
         }
 
         // --- INITIALIZATION ---
