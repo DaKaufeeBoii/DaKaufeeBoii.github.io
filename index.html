@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-900">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NPTEL Cloud Computing Studier</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for webkit browsers */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b; /* slate-800 */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569; /* slate-600 */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b; /* slate-500 */
+        }
+        /* Simple toggle switch */
+        .toggle-checkbox:checked {
+            @apply: bg-blue-600;
+            right: 0;
+            border-color: #2563eb; /* blue-600 */
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            @apply: bg-blue-600;
+        }
+    </style>
+</head>
+<body class="h-full text-slate-200 p-4 md:p-8">
+
+    <div class="max-w-3xl mx-auto">
+        <!-- Header -->
+        <header class="mb-6">
+            <h1 class="text-3xl font-bold text-white text-center mb-2">NPTEL Cloud Computing</h1>
+            <p class="text-xl text-blue-400 text-center">Efficient Study Tool</p>
+        </header>
+
+        <!-- Controls -->
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+            <!-- Filter Dropdown -->
+            <div>
+                <label for="week-filter" class="text-sm font-medium text-slate-400 mr-2">Filter by Week:</label>
+                <select id="week-filter" class="bg-slate-700 border border-slate-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5">
+                    <option value="all">All Weeks (Randomized)</option>
+                    <!-- Options will be populated by JS -->
+                </select>
+            </div>
+            
+            <!-- Mode Toggle -->
+            <div class="flex items-center space-x-4">
+                <span class="text-sm font-medium text-slate-400">Flashcard Mode</span>
+                <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                    <input type="checkbox" name="toggle" id="mode-toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-200 ease-in-out"/>
+                    <label for="mode-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-700 cursor-pointer"></label>
+                </div>
+                <span class="text-sm font-medium text-white">Practice Mode</span>
+            </div>
+        </div>
+        
+        <!-- Question Counter -->
+        <div id="question-counter" class="text-lg font-medium text-slate-300 text-center mb-4">
+            Question 1 of 120
+        </div>
+
+
+        <!-- Quiz Card -->
+        <div class="bg-slate-800 shadow-2xl rounded-xl p-6 md:p-8 transition-all duration-300">
+            <!-- Week Title -->
+            <h3 id="week-title" class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-4">
+                Week 1
+            </h3>
+            
+            <!-- Question Text (holds title in practice mode) -->
+            <div id="question-text" class="text-lg text-white leading-relaxed whitespace-pre-line mb-6 min-h-[50px]">
+                Loading question...
+            </div>
+
+            <!-- Options Container (for practice mode) -->
+            <div id="options-container" class="space-y-3 mb-6">
+                <!-- Option buttons will be generated here -->
+            </div>
+
+            <!-- Answer/Solution Area (Initially Hidden) -->
+            <div id="answer-area" class="hidden">
+                <div class="bg-slate-900/70 border-l-4 border-green-500 p-4 rounded-md">
+                    <p id="correct-answer" class="text-lg font-bold text-green-300 mb-2"></p>
+                    <p id="detailed-solution" class="text-base text-slate-200 leading-relaxed"></p>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-8 pt-6 border-t border-slate-700 flex justify-end gap-4">
+                <button id="show-answer-btn" class="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors">
+                    Show Answer
+                </button>
+                <button id="next-btn" class="hidden px-6 py-3 bg-slate-600 text-white font-medium rounded-lg shadow-md hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-opacity-50 transition-colors">
+                    Next Question
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DATA EXTRACTION ---
+        // All questions, answers, and solutions from the provided PDFs
+        const allQuestions = [
+            // Assignment 1
+            {
+                week: "Week 1",
+                question: "Which of the following does not fall(s) under the typical \"essential characteristics\" of cloud computing?\nA. Resource Pooling\nB. Measured Service\nC. Rapid Elasticity\nD. Latency",
+                answer: "D",
+                solution: "cloud computing is a model for on-demand network access to a shared pool of configurable computing resources that can provide rapid elasticity. It provides automatic control and optimizes resource use by leveraging a metering capability."
+            },
+            {
+                week: "Week 1",
+                question: "\"Google Docs\" app is an example of\nA. PaaS\nB. laaS\nC. SaaS\nD. FaaS",
+                answer: "C",
+                solution: "Google Docs is a provider's application that runs on Google Cloud. The application can be accessed from various client terminals through a client interface, say a web browser. So, It is a Software as a Service (SaaS) model."
+            },
+            {
+                week: "Week 1",
+                question: "Which of the following is/are public cloud platform(s)?\nA. Windows Server Hyper-V\nB. Google Cloud Interconnect\nC. Amazon Virtual Private Cloud\nD. Microsoft Azure",
+                answer: "B, D",
+                solution: "Public cloud is made available to the general public. So, as Google cloud and Microsoft Azure."
+            },
+            {
+                week: "Week 1",
+                question: "VM technology allows multiple virtual machines to run on a single physical system or on a cluster of physical system.\nA. True\nB. False",
+                answer: "A",
+                solution: "Multiple virtual computers can run on a single physical system thanks to virtualization technologies."
+            },
+            {
+                week: "Week 1",
+                question: "A distributed system is typically preferred when the task is: i)Data-intensive; ii)Computing-intensive\nA. Only (i)\nB. Only (ii)\nC. Both (i) and (ii)\nD. Neither (i) nor (ii)",
+                answer: "C",
+                solution: "A distributed system is preferred when the task is both data and computing-intensive"
+            },
+            {
+                week: "Week 1",
+                question: "For less data-intensive applications, horizontal scale-out elasticity is the ideal solution.\nA. True\nB. False",
+                answer: "B",
+                solution: "Horizontal scale-out means adding additional computation units and having them act in concert. It is suitable for large scale-out scenarios."
+            },
+            {
+                week: "Week 1",
+                question: "The combination of Service-Oriented Architecture and Cloud Computing realizes to\nA. FTP\nB. SNTP\nC. XaaS\nD. FaaS",
+                answer: "C",
+                solution: "\"Anything as a Service\" is what XaaS stands for. It's a catch-all term for cloud-based services."
+            },
+            {
+                week: "Week 1",
+                question: "What is/are the typical requirement(s) of a Cloud Service Provider (CSP)?\nA. Increase agility\nB. Increase cost\nC. Increase productivity\nD. Decrease cost",
+                answer: "A, C",
+                solution: "CSP looks forward to enhancing productivity and agility."
+            },
+            {
+                week: "Week 1",
+                question: "PaaS (Platform as a Service) brings the benefits: (i) Creation of software (ii) Integration of web services and databases. Select correct option(s):\nA. Only (i)\nB. Only (ii)\nC. Both (i) and (ii)\nD. Neither (i) nor (ii)",
+                answer: "C",
+                solution: "PaaS is a computing platform that allows developers to quickly create software or online applications by connecting web services and databases."
+            },
+            {
+                week: "Week 1",
+                question: "A ________ is a distributed computer system that consists of a collection of interconnected stand-alone computers working together as an integrated computing resource.\nA. Grid\nB. Cluster\nC. Cloud\nD. Node",
+                answer: "B",
+                solution: "Key components of a cluster include multiple stand-alone computers working together."
+            },
+
+            // Assignment 2
+            {
+                week: "Week 2",
+                question: "What is/are the main difference(s) between virtualization and dual boot?\nA. No difference between dual boot and virtualization.\nB. In virtualization, operating systems are not isolated from each other, but not in dual boot.\nC. In a dual boot, both operating systems run simultaneously, but not in virtualization.\nD. In virtualization, both operating systems run simultaneously, but not in dual boot.",
+                answer: "D",
+                solution: "Virtualization is a method of running multiple operating systems and user applications on the same hardware. Both OSs run simultaneously and are completely isolated from each other."
+            },
+            {
+                week: "Week 2",
+                question: "Ubuntu Enterprise Cloud (UEC) is an example of\nA. Private cloud\nB. Public cloud\nC. Hybrid cloud\nD. Community Cloud",
+                answer: "A",
+                solution: "Ubuntu Enterprise Cloud (UEC) is an example of a private cloud."
+            },
+            {
+                week: "Week 2",
+                question: "Organization should consider-(i) Network Dependency and (ii) Risks from multi-tenancy while thinking of deploying an outsourced private cloud.\nA. Only (i) is true\nB. Only (ii) is true\nC. Both (i) and (ii) are true\nD. None of (i) and (ii) are true",
+                answer: "C",
+                solution: "For outsourced private cloud, subscribers may have an option to provide a unique, protected, and reliable network. Additionally, there is always a risk of multi-tenancy."
+            },
+            {
+                week: "Week 2",
+                question: "Which of the following is/are XML parser API(s)?\nA. XaaS (Anything as a Model)\nB. DOM (Document Object Model)\nC. CLI (Command Line Interface)\nD. SLA (Service Level Agreement)",
+                answer: "B",
+                solution: "DOM is one of the three generic parser APIs. It reads in XML data, checks for syntax, and makes data available to an application."
+            },
+            {
+                week: "Week 2",
+                question: "The public cloud has a risk of multi-tenancy.\nA. True\nB. False",
+                answer: "A",
+                solution: "There is a possibility that a subscriber's workload may be co-resident of the workloads of competitors. Hence, posing a reliability and security risk."
+            },
+            {
+                week: "Week 2",
+                question: "In cloud computing, the Hypervisor is also known as\nA. Cluster Manager\nB. Virtual Machine Handler\nC. Virtual Machine Manager\nD. Virtual Machine Monitor",
+                answer: "D",
+                solution: "The hypervisor is also known as Virtual Machine Monitor"
+            },
+            {
+                week: "Week 2",
+                question: "Speed and flexibility are the two disadvantages of hardware-assisted virtualization.\nA. True\nB. False",
+                answer: "A",
+                solution: "An unmodified OS cannot take advantage of any of the underlying features of virtualization. So, speed and flexibility become cons."
+            },
+            {
+                week: "Week 2",
+                question: "The following problems are addressed through Web services:\n1. Firewall\n2. Interoperability\n3. Complexity\n4. Speed",
+                answer: "1, 2, 3",
+                solution: "Web services improve distributed interoperability by using open standards that can enable any two software components to communicate. It is also intended to take care of firewall issues. (Note: Complexity is listed as correct in the answer key but not explicitly in the solution text)."
+            },
+            {
+                week: "Week 2",
+                question: "A web service can be discovered using\nA. SMS\nB. HTTP\nC. SMTP\nD. UDDI",
+                answer: "D",
+                solution: "Web service is an application component that can be discovered by UDDI (Universal Description, Discovery, and Integration)."
+            },
+            {
+                week: "Week 2",
+                question: "Service-Oriented Architecture (SOA) consists of relationships between:\nA. Two entities (a service provider and a requestor)\nB. Two entities (a service provider and a broker)\nC. Three entities (a service provider, a service requestor, and a broker)\nD. Three entities (a service provider, a service requestor, and a hypervisor)",
+                answer: "C",
+                solution: "Service-Oriented Architecture (SOA) consists of relationships between three entities (a service provider, a service requestor, and a broker)"
+            },
+
+            // Assignment 3
+            {
+                week: "Week 3",
+                question: "What does a cloud SLA typically NOT include?\nA. Availability guarantee\nB. Encryption algorithm details\nC. Performance metrics\nD. Penalty clauses",
+                answer: "B",
+                solution: "Cloud SLAs focus on service delivery-not on low-level implementation details like encryption algorithms, which are part of security documentation."
+            },
+            {
+                week: "Week 3",
+                question: "A multilevel SLA includes which of the following?\nA. Only service-specific agreements\nB. Multiple SLAs signed by different providers\nC. Corporate, customer, and service levels\nD. Only client-specific requirements",
+                answer: "C",
+                solution: "A multilevel SLA is structured to address various levels: corporate-wide, customer-specific, and service-specific."
+            },
+            {
+                week: "Week 3",
+                question: "Which of the following is a typical metric included in a cloud SLA?\nA. Customer's project schedule\nB. Developer salary\nC. Uptime percentage\nD. IP address of the cloud provider",
+                answer: "C",
+                solution: "Common SLA metrics include uptime, response time, and availability. Uptime percentage (e.g., 99.99%) is a standard clause in most cloud SLAs."
+            },
+            {
+                week: "Week 3",
+                question: "Which of the following statements is TRUE regarding Cloud and Web Service SLAs?\nA. Cloud SLAs cannot apply to SaaS applications\nB. Web Service SLAs are only applicable to internal systems\nC. Web Service SLAs are narrower in scope than Cloud SLAS\nD. Cloud SLAs are always written by customers, not providers",
+                answer: "C",
+                solution: "Web Service SLAs are usually limited to application-level services (e.g., a weather API), whereas Cloud SLAs often cover a broader spectrum of services (infrastructure, platforms, applications)."
+            },
+            {
+                week: "Week 3",
+                question: "A cloud service is guaranteed to handle 10,000 requests/hour with 99.5% success. How many failed requests per hour are acceptable under SLA?\nA. 5\nB. 10\nC. 50\nD. 500",
+                answer: "C",
+                solution: "Success rate = 99.5%, so failure rate = 0.5%. 0.5% of 10,000 = (0.5/100) * 10000 = 50. So, 50 failed requests/hour."
+            },
+            {
+                week: "Week 3",
+                question: "Which characteristic is most unique to parallel databases and not shared with traditional relational databases in cloud environments?\nA. Support for SQL\nB. Multi-node distributed query execution\nC. Transaction rollback\nD. Normalized schema usage",
+                answer: "B",
+                solution: "Traditional RDBMS supports SQL, transactions, and normalization, but not multi-node query execution. That's a parallel DB feature, critical in cloud-scale analytics (e.g., Redshift, BigQuery)."
+            },
+            {
+                week: "Week 3",
+                question: "You are designing a big data pipeline that processes video files using a cloud-native distributed file system. Which of the following choices is most suitable for scalable storage and parallel processing?\nA. Amazon Aurora\nB. Google Cloud Storage (with Hadoop connector)\nC. AWS Lambda\nD. Azure SQL Database",
+                answer: "B",
+                solution: "Google Cloud Storage (GCS), when used with a Hadoop connector, acts like a distributed file system. It integrates with Apache Spark/Hadoop and is well-suited for parallel processing of large files like videos."
+            },
+            {
+                week: "Week 3",
+                question: "Which of the following is not supported in MapReduce-based systems for iterative algorithms like machine learning or graph processing?\nA. Data must be reloaded from disk in each iteration\nB. Mappers and reducers cannot share memory between iterations\nC. It supports pipelined execution between stages\nD. High overhead due to repeated job initialization",
+                answer: "C",
+                solution: "MapReduce systems are not optimized for iterative algorithms like machine learning because they reload data from disk in each iteration, lack shared memory between tasks, and incur high overhead from repeated job initialization. The claim that MapReduce supports pipelined execution is incorrect."
+            },
+            {
+                week: "Week 3",
+                question: "A MapReduce job is processing 1 TB of input data. The \"map\" output is 500 GB, and the final \"reduce\" output is 50 GB. If the shuffle and sort phase fails due to insufficient disk I/O, which phase is affected and why?\nA. Map phase, because it processes raw data\nB. Reduce phase, because it merges map outputs\nC. Input split phase, because files are not split\nD. Combiner phase, because data isn't reduced locally",
+                answer: "B",
+                solution: "The shuffle and sort phase occurs between Map and Reduce phases and involves sorting and transferring data from mappers to reducers. If disk I/O is insufficient, the reduce phase fails because it depends on sorted intermediate key-value pairs."
+            },
+            {
+                week: "Week 3",
+                question: "In an OpenStack deployment, if a compute node can support up to 100 virtual CPUs (vCPUs), and the overcommit ratio for CPU is set to 1.5:1, what is the total number of vCPUs that can be allocated?\nA. 100\nB. 150\nC. 66\nD. 200",
+                answer: "B",
+                solution: "OpenStack allows overcommitment of compute resources. Total Allocatable vCPUs = Physical vCPUs * Overcommit Ratio. 100 * 1.5 = 150 vCPUs."
+            },
+
+            // Assignment 4
+            {
+                week: "Week 4",
+                question: "In Azure SQL Database, which of the following provides built-in geo-replication and is designed for mission-critical workloads?\nA. Basic Tier\nB. Business Critical Tier\nC. Hyperscale Tier\nD. Standard Tier",
+                answer: "B",
+                solution: "Business Critical tier includes high IOPS, low latency, and built-in geo-replication, making it suitable for critical applications."
+            },
+            {
+                week: "Week 4",
+                question: "You have 2 VMs in different Azure Availability Zones in the same region. Which of the following is true about the setup?\nA. They are not protected against data center failure\nB. They share the same power source\nC. They are in separate physical locations\nD. They cannot communicate over a private IP",
+                answer: "C",
+                solution: "Availability Zones are physically separate locations within a region, providing redundancy and high availability."
+            },
+            {
+                week: "Week 4",
+                question: "What is the maximum number of deployment slots available in the Azure App Service Premium plan (P1v3 and higher)?\nA. 2\nB. 5\nC. 20\nD. 10",
+                answer: "C",
+                solution: "Premium plans (P1v3 or higher) support up to 20 deployment slots, enabling advanced CI/CD workflows with multiple testing environments."
+            },
+            {
+                week: "Week 4",
+                question: "Which built-in security feature helps automatically enforce HTTPS connections for all Azure App Service web apps?\nA. Azure Firewall\nB. Application Gateway\nC. HTTPS Only setting\nD. Azure Key Vault",
+                answer: "C",
+                solution: "App Service includes a setting called \"HTTPS Only\", which forces all HTTP requests to be redirected to HTTPS to ensure secure communication."
+            },
+            {
+                week: "Week 4",
+                question: "Which GCP service is best suited for hosting a NoSQL database with horizontal scalability and global replication?\nA. Cloud SQL\nB. BigQuery\nC. Cloud Spanner\nD. Firestore",
+                answer: "D",
+                solution: "Firestore is a fully managed, serverless NoSQL document database, ideal for scalable web and mobile apps, with global replication and real-time syncing."
+            },
+            {
+                week: "Week 4",
+                question: "The OpenStack service responsible for block storage is called\nA. Horizon\nB. Cinder\nC. Neutron\nD. Swift",
+                answer: "B",
+                solution: "Cinder provides persistent block storage for virtual machines, similar to a virtual hard drive"
+            },
+            {
+                week: "Week 4",
+                question: "________ is the GCP service that helps manage Kubernetes clusters.\nA. Cloud Functions\nB. App Engine\nC. GKE\nD. Cloud Build",
+                answer: "C",
+                solution: "GKE is GCP's managed Kubernetes service to deploy, manage, and scale containerized applications."
+            },
+            {
+                week: "Week 4",
+                question: "You are designing a multi-region data analytics pipeline on GCP. You want to ensure durable, low-latency storage for massive structured logs and provide real-time dashboarding and alerts. What is the best set of GCP services to use?\nA. Cloud Storage + Dataflow + Looker\nB. Bigtable + Pub/Sub + Cloud Monitoring\nC. Firestore + Data Studio + Cloud Functions\nD. BigQuery + Pub/Sub + Data Studio",
+                answer: "D",
+                solution: "Pub/Sub ingests real-time logs. BigQuery stores large structured data with near real-time query performance. Data Studio connects directly with BigQuery to provide dashboards."
+            },
+            {
+                week: "Week 4",
+                question: "You deploy two versions (v1, v2) of your App Engine service. You want 70% of traffic to go to v1 and 30% to v2. Which command should you use?\nA. gcloud app deploy --split-traffic $=70:v1,30:v2$\nB. gcloud app services set-traffic --splits $v1=0.7$ $v2=0.3$\nC. gcloud app versions set-traffic --service=default --splits $=0.7:v1,0.3:v2$\nD. gcloud app set-traffic --splits $=v1:70$,v2:30",
+                answer: "B",
+                solution: "To split traffic between versions of an App Engine service, use gcloud app services set-traffic with the --splits flag. The values must be fractions between 0 and 1, not percentages."
+            },
+            {
+                week: "Week 4",
+                question: "A tenant in OpenStack complains that their VMs can't reach the internet. What is the MOST LIKELY root cause?\nA. Glance image is corrupted\nB. Neutron router not configured\nC. Nova scheduler is down\nD. Heat orchestration failed",
+                answer: "B",
+                solution: "Without a Neutron router, tenant subnets can't get external network access."
+            },
+
+            // Assignment 5
+            {
+                week: "Week 5",
+                question: "In an SLA agreement, a cloud provider promises 98.5% availability. An application runs X hours per day. Over a 30-day month, the total downtime was 11 hours. The SLA is still considered honored. What is the minimum possible value of X?\nA. X is at least 24.44\nB. X is at most 24.44\nC. X is exactly 24.44\nD. Insufficient data",
+                answer: "A",
+                solution: "Total time = X*30 hours. Outage = 11 hours. Actual availability >= 98.5%. (1 - 11/(X*30)) * 100 >= 98.5. 1 - 11/(30X) >= 0.985. 0.015 >= 11/(30X). 30X >= 11 / 0.015 = 733.33. X >= 24.44. Therefore, X must be at least 24.44 hours/day."
+            },
+            {
+                week: "Week 5",
+                question: "In a multi-core system, increasing the number of active CPU cores will generally lead to:\nA. A decrease in power consumption\nB. A constant power consumption\nC. An increase in power consumption\nD. No effect on power consumption",
+                answer: "C",
+                solution: "Power consumption increases as more cores are activated. Although energy-efficient scheduling can optimize this, more cores typically consume more power linearly."
+            },
+            {
+                week: "Week 5",
+                question: "Which economic factor is most impacted when moving from on-premise to cloud infrastructure?\nA. Taxation\nB. Labor productivity\nC. Capital expenditure\nD. Bandwidth consumption",
+                answer: "C",
+                solution: "One of the main economic shifts in moving to the cloud is the reduction or elimination of capital expenditure (CapEx). Instead of purchasing servers... upfront, organizations switch to an operational expenditure (OpEx) model."
+            },
+            {
+                week: "Week 5",
+                question: "In the Hadoop MapReduce framework, consider the HDFS block size is 64 MB. You have 3 files with the sizes: 64 KB, 65 MB and 127 MB. How many physical HDFS blocks will be created by the Hadoop framework to store these files? (Assuming default replication factor of 3)\nA. 9\nB. 15\nC. 6\nD. 8",
+                answer: "B",
+                solution: "File 1 (64 KB) -> 1 block. File 2 (65 MB) -> 2 blocks (64 MB + 1 MB). File 3 (127 MB) -> 2 blocks (64 MB + 63 MB). Total logical blocks = 1 + 2 + 2 = 5. With replication factor of 3, total physical blocks = 5 * 3 = 15."
+            },
+            {
+                week: "Week 5",
+                question: "Which of the following best represents a logical resource in a virtualized environment?\nA. Virtual Machine\nB. Hard Disk\nC. RAM\nD. Network Cable",
+                answer: "A",
+                solution: "A Virtual Machine (VM) is a logical abstraction over physical hardware. It behaves like a separate computer but is created and managed by a hypervisor, hence it is a logical resource."
+            },
+            {
+                week: "Week 5",
+                question: "Which optional MapReduce component helps in reducing the volume of data transferred to the Reducer?\nA. Partitioner\nB. Combiner\nC. RecordReader\nD. OutputFormat",
+                answer: "B",
+                solution: "The Combiner acts like a mini-Reducer that performs local aggregation on Mapper output, reducing the amount of data transferred across the network during the shuffle phase."
+            },
+            {
+                week: "Week 5",
+                question: "In virtualized environments, the software layer that allows multiple VMs to share physical hardware is the\nA. Allocator\nB. Orchestrator\nC. Container\nD. Hypervisor",
+                answer: "D",
+                solution: "The hypervisor (also called Virtual Machine Monitor) is the core component that virtualizes hardware, enabling multiple VMs to run on a single physical host with isolation and control."
+            },
+            {
+                week: "Week 5",
+                question: "Which scheduling strategy in cloud resource management aims to reduce the number of physical machines used, without violating performance constraints?\nA. Round-robin scheduling\nB. Energy-aware scheduling\nC. Priority-based scheduling\nD. First-come-first-serve",
+                answer: "B",
+                solution: "Energy-aware scheduling attempts to minimize energy consumption by consolidating tasks or VMs on fewer physical nodes, ensuring performance is still maintained. It plays a critical role in sustainable cloud infrastructures."
+            },
+            {
+                week: "Week 5",
+                question: "Statement 1: Economies of scale in cloud computing lead to reduced costs per unit as the scale increases.\nStatement 2: Cloud providers pass all savings from economies of scale directly to individual users.\nA. Both statements are true\nB. Both statements are false\nC. Statement 1 is true and Statement 2 is false\nD. Statement 1 is false and Statement 2 is true",
+                answer: "C",
+                solution: "Cloud providers benefit from economies of scale (buying hardware in bulk, optimized infrastructure, etc.) and thus lower the unit cost of computing. While users benefit indirectly, providers do not necessarily pass all savings directly to users pricing remains strategic."
+            },
+            {
+                week: "Week 5",
+                question: "Average resource demand is 50 units, Baseline (owned) unit cost is 100 units, Time is 10 hours, Peak resource demand is 120 units. What is the maximum allowable utility premium (U) if the cloud cost must be less than owning cost?\nA. 2.4\nB. 2.0\nC. 1.8\nD. 3.0",
+                answer: "A",
+                solution: "Cloud Cost (CT) < Owning Cost (BT). CT = A*U*B*T. BT = P*B*T. (A*U*B*T) < (P*B*T) -> A*U < P. U < P/A. U < 120 / 50. U < 2.4. So utility premium must be less than 2.4."
+            },
+
+            // Assignment 6
+            {
+                week: "Week 6",
+                question: "Modification of data in transit is considered as an attack on\nA) Confidentiality\nB) Integrity\nC) Availability\nD) Authenticity",
+                answer: "B",
+                solution: "Modification refers to the unauthorized alteration of data. When data is changed during transmission... the original content is no longer intact. This violates integrity, which ensures that data is accurate and unchanged."
+            },
+            {
+                week: "Week 6",
+                question: "A phishing attack is mainly an attack on\nA) Confidentiality\nB) Availability\nC) Integrity\nD) Authenticity",
+                answer: "D",
+                solution: "Phishing tricks users into revealing personal or sensitive information by pretending to be a legitimate entity. This attack violates authenticity, which ensures that users and systems are who they claim to be."
+            },
+            {
+                week: "Week 6",
+                question: "Which of the following attacks is NOT passive?\nA) Eavesdropping\nB) Snooping\nC) Masquerading\nD) Traffic Analysis",
+                answer: "C",
+                solution: "Masquerading (or spoofing) involves impersonating an authorized user to gain access to resources. This is an active attack because the attacker is interacting with and manipulating the system. The others are passive they involve observing without interfering."
+            },
+            {
+                week: "Week 6",
+                question: "Denial-of-Service (DoS) is an example of\nA) Disruption\nB) Disclosure\nC) Usurpation\nD) Deception",
+                answer: "A",
+                solution: "A DoS attack interrupts or degrades the normal service of a system, hence it is a case of disruption."
+            },
+            {
+                week: "Week 6",
+                question: "Which step involves actively testing systems for security weaknesses?\nA) Reconnaissance\nB) Vulnerability scanning\nC) Penetration testing\nD) Post-attack investigation",
+                answer: "C",
+                solution: "Penetration testing simulates real attacks to exploit vulnerabilities and assess the actual security posture of the system."
+            },
+            {
+                week: "Week 6",
+                question: "Reconnaissance in network security is the phase where attackers or testers collect information about the target system.\nA) True\nB) False",
+                answer: "A",
+                solution: "Reconnaissance is an information-gathering step, often the first step attackers use to learn about a system before attempting an attack."
+            },
+            {
+                week: "Week 6",
+                question: "Statement I: Authentication is the process of verifying the identity of a user or system.\nStatement II: Non-repudiation ensures that a sender cannot deny sending a message.\nOptions:\nA) Statement I is TRUE and Statement II is FALSE.\nB) Statement I is FALSE and Statement II is TRUE.\nC) Both statements are TRUE.\nD) Both statements are FALSE.",
+                answer: "C",
+                solution: "Authentication checks the validity of user/system identity, while non-repudiation ensures accountability by preventing denial of message origin. Both are true."
+            },
+            {
+                week: "Week 6",
+                question: "A company develops a custom machine learning model. They want full control over the operating system, runtime libraries, and storage but do not want to manage physical servers, power, or networking. Which cloud service model best suits their needs?\na) SaaS\nb) IaaS\nc) PaaS\nd) DaaS",
+                answer: "B",
+                solution: "Since the company wants to control OS, libraries, and storage while offloading management of hardware, networking, and facilities, laaS is the right choice. PaaS would abstract away OS/runtime control."
+            },
+            {
+                week: "Week 6",
+                question: "A healthcare company must follow HIPAA guidelines when storing patient data in the cloud. This is an example of which security risk?\nA) Regulatory Compliance & Audit\nB) Data Location\nC) Recovery\nD) Investigative Support",
+                answer: "A",
+                solution: "Regulatory compliance & audit ensures that cloud providers and customers adhere to laws (like HIPAA, GDPR)."
+            },
+            {
+                week: "Week 6",
+                question: "Vendor lock-in is most directly associated with which long-term viability challenge?\na) Difficulty in migrating data to another provider\nb) Unauthorized data disclosure\nc) Increased regulatory audits\nd) Privileged user misuse",
+                answer: "A",
+                solution: "Vendor lock-in makes it hard for customers to migrate applications and data due to proprietary formats, APIs, or integrations."
+            },
+
+            // Assignment 7
+            {
+                week: "Week 7",
+                question: "Which of the following is a major challenge in Mobile Cloud Computing?\nA) Low demand for mobile applications\nB) Unlimited local resources in mobile devices\nC) Network latency and dependency\nD) Elimination of mobile Internet services",
+                answer: "C",
+                solution: "MCC depends heavily on Internet connectivity for cloud access. High latency or poor bandwidth directly impacts user experience and performance."
+            },
+            {
+                week: "Week 7",
+                question: "When MCC enables a user to access mobile apps and data from anywhere, it reflects which cloud characteristic?\nA) Elasticity\nB) Location independence\nC) On-demand self-service\nD) Resource pooling",
+                answer: "B",
+                solution: "Location independence means that users can access applications and data from anywhere using the Internet, regardless of the physical location of data centers or devices. MCC leverages this feature."
+            },
+            {
+                week: "Week 7",
+                question: "In dynamic routine offloading, the decision of whether to execute a task locally or in the cloud depends primarily on:\nA) Fixed pre-programmed instructions in the mobile device\nB) Real-time context parameters such as network bandwidth, latency, and device battery level\nC) The number of installed mobile applications\nD) Cloud provider's billing cycle",
+                answer: "B",
+                solution: "Dynamic routine offloading... evaluates real-time conditions like current bandwidth availability, latency, energy consumption, CPU load, and task complexity to decide whether execution should remain on the device or move to the cloud."
+            },
+            {
+                week: "Week 7",
+                question: "The main purpose of a cloudlet in Mobile Cloud Computing is to:\nA) Act as a small-scale data center close to mobile users\nB) Replace all cloud servers globally\nC) Increase the storage capacity of mobile devices directly\nD) Remove the need for wireless connectivity",
+                answer: "A",
+                solution: "A cloudlet is a small-scale data center located near mobile devices to provide low-latency computation and quick offloading."
+            },
+            {
+                week: "Week 7",
+                question: "Which of the following is a major security concern in Mobile Cloud Computing (MCC)?\nA) Unlimited battery consumption\nB) Data confidentiality and privacy during transmission\nC) Increasing device size\nD) Lack of mobile applications",
+                answer: "B",
+                solution: "The key security concern in MCC is confidentiality and privacy of data when it is transmitted from mobile devices to the cloud. Attackers may intercept sensitive information."
+            },
+            {
+                week: "Week 7",
+                question: "Which of the following is a key advantage of Fog Computing over Cloud Computing?\nA) Higher centralization of resources\nB) Better support for real-time applications like healthcare monitoring and autonomous vehicles\nC) Infinite storage capacity\nD) Removal of network infrastructure",
+                answer: "B",
+                solution: "Fog computing supports real-time, delay-sensitive applications by reducing communication delays through local processing. Cloud computing alone suffers from higher latency."
+            },
+            {
+                week: "Week 7",
+                question: "In Fog Computing, data is usually processed at\nA) Central cloud data centers only\nB) Satellites orbiting the earth\nC) Only on end-user mobile devices\nD) Edge devices or intermediate nodes such as routers, gateways, or local servers",
+                answer: "D",
+                solution: "Fog computing relies on intermediate nodes like gateways, routers, and local servers to process data near its source."
+            },
+            {
+                week: "Week 7",
+                question: "Statement 1: Geospatial Cloud Computing enables large-scale spatial data analysis by leveraging distributed computing resources.\nStatement 2: Traditional desktop GIS systems alone are sufficient to handle petabyte-scale remote sensing data efficiently.\nC) Statement 1 is true, but Statement 2 is false\nD) Statement 1 is false, but Statement 2 is true",
+                answer: "C",
+                solution: "Geospatial cloud allows processing of large-scale, high-volume data... efficiently using distributed storage and parallel computing. Traditional desktop GIS cannot efficiently handle petabyte-scale data due to limited resources."
+            },
+            {
+                week: "Week 7",
+                question: "In Geospatial Cloud Computing, the biggest challenge when processing satellite imagery and spatial big data is:\nA) Lack of interest in geospatial data\nB) High computational demand and storage requirements for large-scale raster/vector datasets\nC. The inability of GIS tools to run on cloud platforms\nD) Elimination of spatial data standards like OGC",
+                answer: "B",
+                solution: "Geospatial datasets (e.g., satellite images, LiDAR, GPS streams) are massive and require high-performance computing, distributed storage, and parallel processing. This makes scalability and optimization in cloud platforms a challenge."
+            },
+            {
+                week: "Week 7",
+                question: "In an IoT-enabled smart healthcare system, which combination is most critical to ensure real-time patient monitoring with minimal delay?\nA) Cloud computing + Batch processing\nB) Fog/Edge computing + Low-latency communication (e.g., 5G)\nC) Local device storage + Periodic manual uploads\nD) Satellite communication + High latency networks",
+                answer: "B",
+                solution: "For real-time IoT applications like healthcare monitoring... fog/edge computing is crucial because it processes data near the source, reducing delays. Coupled with low-latency 5G networks, this ensures immediate response."
+            },
+
+            // Assignment 8
+            {
+                week: "Week 8",
+                question: "An IoT platform's basic building blocks is/are (choose the correct option(s)).\na. Gateway\nb. Images\nc. Network and Cloud\nd. Containers",
+                answer: "a, c",
+                solution: "An IoT platform has three basic building blocks, Things, Gateway, and Network and Cloud."
+            },
+            {
+                week: "Week 8",
+                question: "________ is used to delete a local image.\na. Docker rm\nb. Docker rmi\nc. Docker rvi\nd. Docker push",
+                answer: "b",
+                solution: "Docker rmi is used to delete a local image."
+            },
+            {
+                week: "Week 8",
+                question: "Docker Hub is a registry used to host various docker images.\na) True\nb) False",
+                answer: "a",
+                solution: "Docker Hub is a registry used to host various docker images."
+            },
+            {
+                week: "Week 8",
+                question: "________ enables different networks, spreads in a huge geographical area to connect together and be employed simultaneously by multiple users on demand.\na) Serverless\nb) IoT Cloud\nc) Sensor Cloud\nd) Green Cloud",
+                answer: "c",
+                solution: "Sensor Cloud enables different networks, spreads in a huge geographical area to connect together and be employed simultaneously by multiple users on demand."
+            },
+            {
+                week: "Week 8",
+                question: "Virtual machines get virtual access to host resources through a\na) Containers\nb) Hypervisor\nc) Both a and b\nd) Images",
+                answer: "b",
+                solution: "Virtual machines get virtual access to host resources through a hypervisor."
+            },
+            {
+                week: "Week 8",
+                question: "Vehicles providing their networking and data processing capabilities to other vehicles through the cloud comes under which service of IoT-based Vehicular Data Clouds.\na) SaaS\nb) PaaS\nc) IaaS\nd) None of these",
+                answer: "c",
+                solution: "Vehicles provide their networking and data processing capabilities to other vehicles through the cloud comes under the Networking and Data processing as a service (IaaS)"
+            },
+            {
+                week: "Week 8",
+                question: "Sensor data can be easily shared by different groups of users without any extra effort/ measure.\na. True\nb. False",
+                answer: "b",
+                solution: "One of the limitations of Sensor Networks is \"Sensor data can not be easily shared by different groups of users.\""
+            },
+            {
+                week: "Week 8",
+                question: "Container is a compile time instance of an image.\na) True\nb) False",
+                answer: "b",
+                solution: "Container is a run time instance of an image."
+            },
+            {
+                week: "Week 8",
+                question: "In the context of Green Cloud Computing, the Power Usage Effectiveness is defined as\na. Power Delivered / Overall Power\nb. Overall Power / Power Delivered\nc. Overall Power * Power Delivered\nd. None of these",
+                answer: "b",
+                solution: "In the context of Green Cloud Computing, the Power Usage Effectiveness is defined as Overall Power / Power Delivered."
+            },
+            {
+                week: "Week 8",
+                question: "Statement 1: Sensor-Cloud proxy exposes sensor resources as cloud services.\nStatement 2: Sensor network is still managed from the Sensor-Cloud Interface via Sensor Network Proxy\na. Statement 1 is True and Statement 2 is False\nb. Statement 2 is True and Statement 1 is False\nc. Both statements are True\nd. Both statements are False",
+                answer: "c",
+                solution: "Sensor cloud proxy exposes sensor resources as cloud services. Sensor network is still managed from the Sensor-Cloud Interface via Sensor Network Proxy."
+            },
+
+            // Assignment 9
+            {
+                week: "Week 9",
+                question: "Which of the following best explains the difference between fog computing and edge computing?\nA) Edge... and fog... are identical...\nB) Fog computing extends the cloud closer to the edge network, while edge computing processes data strictly within IoT devices or local gateways.\nC) Edge computing centralizes all computation in the cloud...\nD) Fog computing supports only data storage...",
+                answer: "B",
+                solution: "Fog computing acts as a layer between edge devices and the cloud, often including routers, gateways, and micro-data centers.... Edge computing happens at the extreme edge (sensors/devices)."
+            },
+            {
+                week: "Week 9",
+                question: "A smart traffic light system that must process live video feeds to detect congestion is best suited for:\nA) Cloud computing\nB) Fog computing\nC) Edge computing\nD) Traditional client-server model",
+                answer: "B",
+                solution: "Edge alone lacks power for real-time video processing, while cloud introduces high latency. Fog nodes (local servers/gateways) balance low latency + higher compute needs."
+            },
+            {
+                week: "Week 9",
+                question: "In terms of latency, which order is correct (lowest to highest)?\nA) Cloud < Fog < Edge\nB) Fog < Cloud < Edge\nC) Edge < Fog < Cloud\nD) Edge < Cloud < Fog",
+                answer: "C",
+                solution: "Edge: milliseconds (device-level), Fog: low (local servers/gateways), Cloud: higher latency (remote data centers)."
+            },
+            {
+                week: "Week 9",
+                question: "Which type of scalability is most critical when thousands of IoT devices connect simultaneously to a fog node?\nA) Vertical scalability at each fog node\nB) Horizontal scalability across multiple fog nodes\nC) Elasticity in the cloud layer only\nD) Temporal scalability of storage devices",
+                answer: "B",
+                solution: "With many IoT devices, relying on upgrading a single fog node (vertical) is insufficient. Horizontal scalability (adding more fog nodes and distributing load) is essential."
+            },
+            {
+                week: "Week 9",
+                question: "Which statement best captures the hierarchical control in fog/edge/cloud computing?\nA) Edge devices always control fog and cloud resources.\nB) Fog nodes provide intermediate decision-making, while the cloud manages global policies and optimization.\nC) Cloud always directly controls IoT devices without fog involvement.\nD) Hierarchical control is not required in fog computing.",
+                answer: "B",
+                solution: "Fog nodes: act locally with autonomy for quick decisions and Cloud: enforces global orchestration, updates, and optimization policies. This hierarchy ensures both responsiveness and scalability."
+            },
+            {
+                week: "Week 9",
+                question: "What is the primary goal of the application placement problem in the Cloud-Fog-Edge framework?\nA) To map all applications onto the Cloud servers...\nB) To find available resources in the network that satisfy application requirements, respect constraints, and optimize the objective, such as minimizing energy consumption.\nC) To place all application components on edge devices...\nD) To disregard resource capacities...",
+                answer: "B",
+                solution: "In the Cloud-Fog-Edge framework, application placement involves mapping components onto infrastructure while considering resource... network... and application constraints.... The goal is to meet these constraints and optimize objectives like energy consumption."
+            },
+            {
+                week: "Week 9",
+                question: "Which of the following challenges most directly impacts the efficiency of task offloading in mobile edge computing?\nA) Unlimited bandwidth...\nB) Complete absence of virtualization...\nC) Availability of infinite computing power...\nD) Dynamic variability of wireless network conditions and device mobility",
+                answer: "D",
+                solution: "Task offloading decisions in mobile edge computing (MEC) depend heavily on wireless bandwidth, latency fluctuations, and device mobility. Poor connectivity or handovers can nullify the benefit of offloading."
+            },
+            {
+                week: "Week 9",
+                question: "In the context of cloud federation, what role do brokers play?\nA) They act as intermediaries that negotiate, discover, and allocate resources across different CSPs.\nB) They replace CSPs entirely...\nC) They prevent interoperability...\nD) They only monitor usage...",
+                answer: "A",
+                solution: "Brokers in cloud federation manage service discovery, negotiate SLAs, and allocate resources across providers. They are key enablers for interoperability."
+            },
+            {
+                week: "Week 9",
+                question: "Which of the following is a major challenge in cloud federation?\nA) Unlimited scalability...\nB) Ensuring SLA compliance, interoperability, and trust across heterogeneous providers.\nC) Simplified security management...\nD) Guaranteed uniform pricing models...",
+                answer: "B",
+                solution: "The main challenge in cloud federation is handling heterogeneity (different platforms, policies, pricing, and performance guarantees). Maintaining trust, interoperability, and SLA compliance across multiple providers is complex."
+            },
+            {
+                week: "Week 9",
+                question: "Which of the following best describes a Hybrid Cloud Federation?\nA) A federation that integrates only public cloud providers...\nB) A federation where only private cloud providers collaborate...\nC) A federation where resources from public and private clouds are combined to provide flexible services while maintaining security and control.\nD) A federation that ignores interoperability...",
+                answer: "C",
+                solution: "Hybrid cloud federation combines private and public cloud services, balancing security, compliance, and cost. It allows sensitive workloads to remain in private clouds while leveraging public clouds for scalability."
+            },
+
+            // Assignment 10
+            {
+                week: "Week 10",
+                question: "Which migration technique typically results in shorter downtime but may have a longer total migration time?\nA) Cold migration\nB) Pre-copy migration\nC) Post-copy migration\nD) Hybrid migration",
+                answer: "B",
+                solution: "Pre-copy reduces downtime since VM keeps running during iterations, though total migration may be longer."
+            },
+            {
+                week: "Week 10",
+                question: "Which migration type is most prone to network failure risks?\nA) Pre-copy migration\nB) Post-copy migration\nC) Hybrid migration\nD) Cold migration",
+                answer: "B",
+                solution: "If a failure occurs after the destination VM starts execution in Post-copy, incomplete memory state may cause VM crash."
+            },
+            {
+                week: "Week 10",
+                question: "Which migration technique is more energy-efficient in fog computing?\nA) Pre-copy\nB) Post-copy\nC) Hybrid migration\nD) Cold migration",
+                answer: "C",
+                solution: "Hybrid migration balances bandwidth, downtime, and energy usage."
+            },
+            {
+                week: "Week 10",
+                question: "In cloud platforms (like AWS, GCP, Azure), Docker Engine is primarily responsible for:\nA) Automatically scaling container clusters.\nB) Running and managing individual containers on VM instances.\nC) Replacing Kubernetes for container orchestration.\nD) Providing multi-cloud identity management.",
+                answer: "B",
+                solution: "On cloud platforms, Docker Engine runs on VM instances (e.g., EC2, GCE, Azure VM) to manage individual containers. Scaling and orchestration are usually handled by Kubernetes, ECS, AKS, or GKE, not Docker Engine alone."
+            },
+            {
+                week: "Week 10",
+                question: "The central service that stores and distributes Docker images is called\nA) Docker Swarm\nB) Docker Hub\nC) Docker Engine\nD) Docker Daemon",
+                answer: "B",
+                solution: "Docker Hub (or a private registry) is used to store and share images. Swarm (A) is for orchestration, Engine (C) is the runtime, Daemon (D) manages containers locally."
+            },
+            {
+                week: "Week 10",
+                question: "Docker volumes are deleted automatically when the container using them is removed.\na) True\nb) False",
+                answer: "B",
+                solution: "By default, Docker does not delete volumes when containers are removed, to prevent accidental data loss. Volumes must be explicitly removed."
+            },
+            {
+                week: "Week 10",
+                question: "Statement 1: Docker networking allows containers to communicate with each other and the host.\nStatement 2: By default, containers are launched in host network mode.\nA) Only statement 1 is true\nB) Only statement 2 is true\nC) Both statement 1 and 2 are true\nD) Both the statements are false",
+                answer: "A",
+                solution: "Docker provides multiple networking modes... Default is bridge mode, not host mode. So, statement 1 is true, but statement 2 is false."
+            },
+            {
+                week: "Week 10",
+                question: "By default, Docker pulls all images from a private registry.\nA) True\nB) False",
+                answer: "B",
+                solution: "By default, Docker pulls images from the public Docker Hub registry. If you want to pull from a private registry, you need to configure Docker... and provide authentication."
+            },
+            {
+                week: "Week 10",
+                question: "If a VM has 128 GB memory and the migration channel supports 4 MB/sec, what is the total migration time and downtime for non-live VM migration?\nA) 8 hours, 8 hours\nB) 9 hours, 9 hours\nC) 10 hours, 10 hours\nD) 11 hours, 11 hours",
+                answer: "B",
+                solution: "=(128 * 2^30) / (4 * 2^20) = 32768 seconds = 9.1 hours (approx. 9 hours). So migration time = downtime = 9 hours."
+            },
+            {
+                week: "Week 10",
+                question: "During live migration, storage migration is required if:\nA) Both source and destination hosts use shared storage\nB) Destination host has faster CPU\nC) Destination host does not have access to the VM's disk\nD) Migration occurs within the same physical server",
+                answer: "C",
+                solution: "If the destination host cannot access the same disk (no shared storage), storage migration must occur along with memory and CPU state migration."
+            },
+
+            // Assignment 11
+            {
+                week: "Week 11",
+                question: "In a Dew computing architecture, the \"dew layer\" primarily enables:\nA) Centralized computation in remote cloud data centers\nB) Execution of services at the local device level with intermittent cloud connectivity\nC) Resource pooling across multiple public clouds\nD) High-performance computing for scientific simulations",
+                answer: "B",
+                solution: "Dew computing brings computation to the end-user devices... enabling them to work independently of the cloud when disconnected. Later, when connectivity resumes, they synchronize with the cloud."
+            },
+            {
+                week: "Week 11",
+                question: "Which of the following is a key differentiator of Dew computing compared to Fog computing?\nA) Dew computing always requires 24/7 cloud connectivity\nB) Fog computing is strictly user-centric...\nC) Dew computing emphasizes offline-first functionality, while Fog computing emphasizes network-level resource management\nD) Both Dew and Fog computing only function with 5G support",
+                answer: "C",
+                solution: "Dew computing's unique strength is its offline-first model (apps and services can run without the cloud). Fog computing... focuses on distributing computation... but still assumes network availability."
+            },
+            {
+                week: "Week 11",
+                question: "Dew computing extends the concept of:\nA) SaaS to Local + Cloud\nB) PaaS to Serverless execution\nC. IaaS to Multi-Cloud Migration\nD) DaaS to GPU Virtualization",
+                answer: "A",
+                solution: "Dew computing often extends Software as a Service (SaaS) into a local + cloud integrated model. For example, a word processor that runs offline... and later syncs documents with the cloud."
+            },
+            {
+                week: "Week 11",
+                question: "Which of the following is a limitation of Dew computing in mission-critical systems?\nA) Lack of support for offline operations\nB) Increased dependency on edge gateways\nC) Potential inconsistency during synchronization with the cloud\nD) Inability to function without fog nodes",
+                answer: "C",
+                solution: "Since Dew systems work offline and later synchronize, data inconsistency or conflict resolution may occur when merging offline and cloud data. This is a major research challenge."
+            },
+            {
+                week: "Week 11",
+                question: "In serverless computing, billing granularity is typically based on:\nA) Number of concurrent requests handled per second\nB) Total server uptime hours per month\nC) Execution time and allocated memory per function invocation\nD) Reserved virtual machine cores assigned to the application",
+                answer: "C",
+                solution: "Unlike traditional VM/Container billing, FaaS platforms... charge based on execution duration allocated memory (and number of invocations)."
+            },
+            {
+                week: "Week 11",
+                question: "How does serverless computing primarily achieve scalability?\nA) By allocating additional dedicated VMs...\nB) Through manual configuration of load balancers\nC) By automatically spawning and terminating stateless function instances in response to events\nD) By migrating workloads between private and public clouds",
+                answer: "C",
+                solution: "Serverless computing auto-scales by launching multiple instances of functions concurrently based on incoming event volume. This scaling is transparent to developers."
+            },
+            {
+                week: "Week 11",
+                question: "Which of the following best explains why state management is a challenge in FaaS?\nA) Functions are deployed in containers that don't support persistent memory\nB) FaaS strictly enforces sequential execution...\nC) Functions must maintain state within the allocated VM only\nD) State persistence requires external services like databases or object stores",
+                answer: "D",
+                solution: "FaaS is stateless by design. If state persistence is needed, developers must use external services (e.g., DynamoDB, Redis, S3, Firestore). This introduces latency and architectural complexity."
+            },
+            {
+                week: "Week 11",
+                question: "Which of the following is the most significant performance challenge in Function-as-a-Service platforms?\nA) High provisioning costs...\nB) Vendor lock-in...\nC) Cold start latency during function invocation\nD) Inability to scale horizontally",
+                answer: "C",
+                solution: "FaaS relies on ephemeral containers to execute functions. When a function is triggered after being idle, it requires container setup cold start latency. This is a critical... challenge."
+            },
+            {
+                week: "Week 11",
+                question: "What is the maximum execution timeout allowed for a single AWS Lambda function invocation (as of current limits)?\nA) 5 minutes\nB) 10 minutes\nC) 15 minutes\nD) 30 minutes",
+                answer: "C",
+                solution: "An AWS Lambda function can run up to 15 minutes per invocation. If the task exceeds this, it must be redesigned."
+            },
+            {
+                week: "Week 11",
+                question: "A cloud provider decides to implement server consolidation to improve sustainability. The main risk that needs to be managed is:\nA) Increased carbon offset costs\nB) Higher latency due to network congestion\nC) Performance degradation and resource contention when multiple VMs share the same physical server\nD) Reduced data replication...",
+                answer: "C",
+                solution: "Server consolidation reduces idle energy waste by packing VMs together. But it risks overloading physical servers, leading to contention and SLA violations."
+            },
+
+            // Assignment 12
+            {
+                week: "Week 12",
+                question: "In a Spatial Cloud Computing environment, which service characteristic ensures that geospatial applications can dynamically scale based on varying workloads such as real-time satellite image processing?\nA) Resource Pooling\nB) Rapid Elasticity\nC) Broad Network Access\nD) Measured Service",
+                answer: "B",
+                solution: "Rapid Elasticity allows spatial cloud to dynamically allocate or release computing resources based on workload demand. This is critical for geospatial tasks like real-time satellite data ingestion."
+            },
+            {
+                week: "Week 12",
+                question: "Which deployment model is most suitable for a government-academic spatial cloud collaboration aimed at environmental monitoring with shared but secure resources?\nA) Public Cloud\nB) Private Cloud\nC) Community Cloud\nD) Hybrid Cloud",
+                answer: "C",
+                solution: "A Community Cloud is best when multiple organizations with shared goals (e.g., government agencies + universities) collaborate. It provides shared infrastructure... with security and compliance tailored for that group."
+            },
+            {
+                week: "Week 12",
+                question: "Which of the following is a major challenge of spatial cloud computing in terms of data management?\nA) Lack of virtualization support\nB) High storage cost of structured data\nC) Handling large-scale heterogeneous geospatial datasets\nD) Limited access to network...",
+                answer: "C",
+                solution: "Spatial cloud handles massive geospatial data (satellite imagery, LiDAR, GPS streams). The main challenge is heterogeneity (different formats, scales, projections, and resolutions). Efficient integration and querying... is a key challenge."
+            },
+            {
+                week: "Week 12",
+                question: "Which is a major challenge for Mobile Cloud Computing in 4G networks that is significantly reduced in 5G?\nA) High deployment cost...\nB) Limited device battery capacity\nC) Lack of virtualization technologies\nD) High round-trip latency between devices and cloud servers",
+                answer: "D",
+                solution: "In 4G, the latency between devices and cloud servers was a bottleneck for MCC. 5G's edge and fog integration reduce this round-trip latency, enabling real-time applications."
+            },
+            {
+                week: "Week 12",
+                question: "In MCC with 5G, which combination best explains enhanced Quality of Experience (QoE) for mobile users?\nA) Higher bandwidth + Network slicing + Mobile edge computing\nB) Centralized processing + Increased resource pooling...\nC) Virtualization + Cloud-only data storage...\nD) None of these",
+                answer: "A",
+                solution: "5G enables MCC with high bandwidth, network slicing, and edge computing. Together, these reduce delays, allocate resources dynamically, and ensure mobile apps get stable, fast performance, directly enhancing QoE."
+            },
+            {
+                week: "Week 12",
+                question: "Which 5G feature combined with MCC is most critical for disaster management and real-time public safety applications?\nA) Broad Network Access\nB) Massive Machine-Type Communications (mMTC)\nC) Shared Cloud Storage\nD) On-demand self-service",
+                answer: "B",
+                solution: "mMTC in 5G allows massive IoT devices (sensors, cameras, drones) to connect simultaneously. When paired with MCC, it supports real-time data collection and cloud-based analytics for disaster management."
+            },
+            {
+                week: "Week 12",
+                question: "In an ITS environment, Vehicle-to-Infrastructure (V2I) communication mainly supports:\nA) Social media connectivity...\nB) Vehicles sharing information with road infrastructure like traffic lights and signals\nC) Streaming services...\nD) Offline navigation",
+                answer: "B",
+                solution: "V2I enables vehicles to communicate with road infrastructure (signals, tolls, sensors) to optimize routes, reduce congestion, and improve safety."
+            },
+            {
+                week: "Week 12",
+                question: "In a Cyber-Physical System (CPS) integrated with cloud computing, what is the primary role of the cloud layer?\nA) Direct control of physical devices...\nB) Storage, processing, and analysis of sensor-generated data for decision-making\nC) Only providing network connectivity...\nD) Replacing all local controllers...",
+                answer: "B",
+                solution: "In CPS, physical devices... generate vast amounts of data. The cloud layer... provides scalable storage and computational resources, performs analytics, and supports decision-making. It does not directly replace local controllers, but complements them."
+            },
+            {
+                week: "Week 12",
+                question: "Mobility Analytics in Smart Cities primarily helps to:\nA) Reduce cloud storage costs\nB) Improve traffic flow and transportation planning\nC) Replace all physical traffic sensors\nD) Increase vehicle ownership",
+                answer: "B",
+                solution: "Mobility Analytics uses cloud platforms to analyze vehicle, pedestrian, and sensor data. This helps cities optimize traffic flow, reduce congestion, and plan transportation infrastructure."
+            },
+            {
+                week: "Week 12",
+                question: "5G Enhanced Mobile Broadband (eMBB) reduces ________ by providing faster and more uniform data rates.\nA) network congestion\nB) cost-per-bit for data transmission\nC) connectivity for IoT devices\nD) power efficiency",
+                answer: "B",
+                solution: "eMBB improves bandwidth efficiency, which lowers the cost-per-bit, making high-data applications like VR, AR, and HD streaming more practical."
+            }
+        ];
+
+        // --- STATE VARIABLES ---
+        let questionsBank = []; // A mutable copy for shuffling and filtering
+        let currentQuestions = []; // The active list of questions being quizzed
+        let currentIndex = 0;
+        let currentMode = 'flashcard'; // 'flashcard' or 'practice'
+
+        // --- DOM ELEMENTS ---
+        const filterSelect = document.getElementById('week-filter');
+        const modeToggle = document.getElementById('mode-toggle');
+        const questionCounter = document.getElementById('question-counter');
+        const weekTitle = document.getElementById('week-title');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const answerArea = document.getElementById('answer-area');
+        const correctAnswer = document.getElementById('correct-answer');
+        const detailedSolution = document.getElementById('detailed-solution');
+        const showAnswerBtn = document.getElementById('show-answer-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        // --- FUNCTIONS ---
+
+        /**
+         * Shuffles an array in place using the Fisher-Yates algorithm.
+         */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        /**
+         * Populates the filter dropdown with unique week numbers.
+         */
+        function populateFilters() {
+            const weeks = [...new Set(allQuestions.map(q => q.week))];
+            
+            // Sort weeks numerically
+            weeks.sort((a, b) => {
+                const numA = parseInt(a.replace('Week ', ''));
+                const numB = parseInt(b.replace('Week ', ''));
+                return numA - numB;
+            });
+            
+            weeks.forEach(week => {
+                const option = document.createElement('option');
+                option.value = week;
+                option.textContent = week;
+                filterSelect.appendChild(option);
+            });
+        }
+
+        /**
+         * Handles the click of an option button in Practice Mode.
+         */
+        function handleOptionClick(clickedButton, selectedOption, correctAnswerStr) {
+            const allOptionBtns = optionsContainer.querySelectorAll('button');
+            allOptionBtns.forEach(btn => {
+                btn.disabled = true;
+                btn.classList.add('disabled:opacity-60', 'disabled:cursor-not-allowed');
+            });
+
+            const correctAnswers = correctAnswerStr.split(',').map(s => s.trim().toLowerCase());
+            const isCorrect = correctAnswers.includes(selectedOption.toLowerCase());
+
+            if (isCorrect) {
+                clickedButton.classList.remove('bg-slate-700', 'hover:bg-slate-600');
+                clickedButton.classList.add('bg-green-700', 'ring-2', 'ring-green-400');
+            } else {
+                clickedButton.classList.remove('bg-slate-700', 'hover:bg-slate-600');
+                clickedButton.classList.add('bg-red-700', 'ring-2', 'ring-red-400');
+                
+                // Highlight the correct answer(s)
+                allOptionBtns.forEach(btn => {
+                    if (correctAnswers.includes(btn.dataset.option.toLowerCase())) {
+                        btn.classList.remove('bg-slate-700', 'hover:bg-slate-600');
+                        btn.classList.add('bg-green-700', 'ring-2', 'ring-green-400');
+                    }
+                });
+            }
+
+            // Show solution and next button
+            correctAnswer.textContent = `Correct Answer: ${correctAnswerStr}`;
+            answerArea.classList.remove('hidden');
+            nextBtn.classList.remove('hidden');
+        }
+
+        /**
+         * Loads the current question into the UI based on the selected mode.
+         */
+        function loadQuestion() {
+            if (currentIndex >= currentQuestions.length) {
+                console.log("End of list, reshuffling.");
+                applyFilter(); // Restart the quiz with the same filter
+                return;
+            }
+
+            const q = currentQuestions[currentIndex];
+
+            // Reset UI
+            weekTitle.textContent = q.week;
+            questionText.textContent = '';
+            optionsContainer.innerHTML = '';
+            answerArea.classList.add('hidden');
+            showAnswerBtn.classList.add('hidden');
+            nextBtn.classList.add('hidden');
+            detailedSolution.textContent = q.solution.trim();
+            correctAnswer.textContent = `Correct Answer: ${q.answer}`;
+            questionCounter.textContent = `Question ${currentIndex + 1} of ${currentQuestions.length}`;
+
+            // Parse question into title and options
+            const parts = q.question.trim().split('\n');
+            const questionTitle = parts[0];
+            const optionStrings = parts.slice(1);
+
+            questionText.textContent = questionTitle;
+
+            if (currentMode === 'flashcard') {
+                // Flashcard Mode: Show full question text and "Show Answer" button
+                questionText.textContent += '\n' + optionStrings.join('\n');
+                showAnswerBtn.classList.remove('hidden');
+            } else {
+                // Practice Mode: Create buttons for options
+                optionStrings.forEach(optionString => {
+                    let dotIndex = optionString.indexOf('.');
+                    if (dotIndex === -1) dotIndex = optionString.indexOf(')');
+                    if (dotIndex === -1) return; // Skip malformed line
+
+                    const optionLetter = optionString.substring(0, dotIndex).trim();
+                    const optionText = optionString.substring(dotIndex + 1).trim();
+
+                    const btn = document.createElement('button');
+                    btn.className = "w-full text-left p-4 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500";
+                    btn.innerHTML = `<span class="font-bold text-blue-300 mr-3">${optionLetter}.</span> ${optionText}`;
+                    btn.dataset.option = optionLetter;
+                    
+                    btn.addEventListener('click', () => handleOptionClick(btn, optionLetter, q.answer));
+                    optionsContainer.appendChild(btn);
+                });
+            }
+        }
+
+        /**
+         * Filters and shuffles the questions based on the dropdown selection.
+         */
+        function applyFilter() {
+            const selectedWeek = filterSelect.value;
+            
+            // Create a fresh, full copy of the questions
+            questionsBank = [...allQuestions];
+
+            if (selectedWeek === 'all') {
+                currentQuestions = shuffleArray(questionsBank);
+            } else {
+                currentQuestions = shuffleArray(questionsBank.filter(q => q.week === selectedWeek));
+            }
+
+            currentIndex = 0;
+            if (currentQuestions.length > 0) {
+                // Update total count on counter
+                questionCounter.textContent = `Question 1 of ${currentQuestions.length}`;
+                loadQuestion();
+            } else {
+                // Handle case where a filter results in no questions
+                weekTitle.textContent = "No Questions";
+                questionText.textContent = "No questions found for this filter.";
+                questionCounter.textContent = "Question 0 of 0";
+            }
+        }
+
+        /**
+         * Event handler for the 'Show Answer' button (Flashcard Mode).
+         */
+        function handleShowAnswer() {
+            answerArea.classList.remove('hidden');
+            showAnswerBtn.classList.add('hidden');
+            nextBtn.classList.remove('hidden');
+        }
+
+        /**
+         * Event handler for the 'Next Question' button.
+         */
+        function handleNextQuestion() {
+            currentIndex++;
+            loadQuestion();
+        }
+
+        /**
+         * Event handler for the mode toggle switch.
+         */
+        function handleModeToggle() {
+            currentMode = modeToggle.checked ? 'practice' : 'flashcard';
+            loadQuestion();
+        }
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            populateFilters();
+            applyFilter(); // Load initial set of questions
+
+            // Attach event listeners
+            filterSelect.addEventListener('change', applyFilter);
+            modeToggle.addEventListener('change', handleModeToggle);
+            showAnswerBtn.addEventListener('click', handleShowAnswer);
+            nextBtn.addEventListener('click', handleNextQuestion);
+        });
+
+    </script>
+</body>
+</html>
+
